@@ -2,7 +2,9 @@ const postsContainer = document.getElementById('posts-container');
 
 async function getPosts() {
     const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-    const posts = await response.json();
+    let posts = await response.json();
+
+    posts = posts.sort((a, b) => a.id - b.id);
 
     posts.forEach(post => {
         const postElement = document.createElement('div');
@@ -61,12 +63,18 @@ async function getPosts() {
         });
 
         const commentsToggle = document.createElement('span');
-        commentsToggle.classList.add('h3', 'mx-1', 'mt-0', 'comment-button', 'muted');
+        commentsToggle.classList.add('h3', 'mx-2', 'mt-0', 'comment-button', 'muted');
         const commentIcon = document.createElement('i');
         commentIcon.classList.add('bi', 'bi-chat-fill');
         commentsToggle.id = `comments-toggle-${post.id}`;
         commentsToggle.appendChild(commentIcon);
         commentsToggle.addEventListener('click', () => toggleComments(post.id));
+        const saveButton = document.createElement('span');
+        saveButton.classList.add('h3', 'float-sm-right', 'mt-0', 'save-button');
+        const saveIcon = document.createElement('i');
+        saveIcon.classList.add('bi', 'bi-bookmark-fill');
+        saveButton.appendChild(saveIcon);
+        postActions.appendChild(saveButton);
         postActions.appendChild(commentsToggle);
 
         const title = document.createElement('h3');
@@ -77,6 +85,33 @@ async function getPosts() {
 
         const commentsContainer = document.createElement('div');
         commentsContainer.id = `comments-${post.id}`;
+
+        const commentForm = createCommentFormElement(post);
+        postActions.appendChild(commentForm);
+
+        commentsToggle.addEventListener('click', () => {
+            commentForm.classList.toggle('d-none');
+        });
+
+        commentForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(commentForm);
+            const comment = {
+                user: formData.get("userId"),
+                post: formData.get("postId"),
+                text: formData.get("comment")
+            };
+            const commentElement = createCommentElement(comment);
+            commentsContainer.appendChild(commentElement);
+            sendData(comment)
+            commentForm.reset();
+        });
+
+        saveButton.addEventListener('click', function () {
+            saveButton.classList.toggle('clicked');
+        });
+
 
         postElement.appendChild(imageContainer);
         postElement.appendChild(title);
@@ -110,4 +145,80 @@ async function toggleComments(postId) {
     `;
         commentsContainer.appendChild(commentElement);
     });
+}
+
+function createCommentElement(comment) {
+    const commentElement = document.createElement('div');
+    commentElement.className = 'comment';
+
+    const textElement = document.createElement('p');
+    textElement.innerText = comment.text;
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+
+    const formattedDate = `${day}/${month}/${year}`;
+    const formattedTime = `${hours}:${minutes}:${seconds}`;
+
+    const timeElement = document.createElement('p');
+    timeElement.innerText = `${formattedDate} ${formattedTime}`;
+
+    commentElement.appendChild(textElement);
+    commentElement.appendChild(timeElement);
+    return commentElement;
+}
+
+function createCommentFormElement(post) {
+    const form = document.createElement('form');
+    form.classList.add('comment-form', 'd-none');
+
+    const userIdInput = document.createElement('input');
+    userIdInput.type = 'hidden';
+    userIdInput.name = 'userId';
+    userIdInput.value = post.user;
+    form.appendChild(userIdInput);
+
+    const postIdInput = document.createElement('input');
+    postIdInput.type = 'hidden';
+    postIdInput.name = 'postId';
+    postIdInput.value = post.id;
+    form.appendChild(postIdInput);
+
+    const textarea = document.createElement('textarea');
+    textarea.classList.add('form-control', 'mb-2');
+    textarea.name = 'comment';
+    textarea.placeholder = 'Write a comment...';
+    form.appendChild(textarea);
+
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.classList.add('btn', 'btn-primary');
+    submitButton.textContent = 'Submit';
+    form.appendChild(submitButton);
+
+    return form;
+}
+
+async function sendData(comment) {
+    const url = `https://jsonplaceholder.typicode.com/comments`;
+
+    const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({
+            postId: comment.postId,
+            name: comment.name,
+            email: comment.email,
+            body: comment.body
+        }),
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+        },
+    });
+
+    return await response.json();
 }
