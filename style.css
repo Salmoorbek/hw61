@@ -6,10 +6,16 @@
     margin-bottom: 20px;
     padding: 20px;
 }
+
 .like-button, .comment-button {
     margin-top: 10px;
     margin-right: 10px;
 }
+
+.save-button.clicked i {
+    color: red;
+}
+
 .post img {
     display: block;
     margin: 0 auto 20px;
@@ -25,20 +31,6 @@
     font-size: 16px;
     line-height: 1.5;
     margin-bottom: 20px;
-}
-
-.comments-toggle {
-    background-color: #0077cc;
-    border: none;
-    border-radius: 3px;
-    color: #fff;
-    cursor: pointer;
-    padding: 8px 12px;
-    transition: background-color 0.2s;
-}
-
-.comments-toggle:hover {
-    background-color: #005da3;
 }
 
 #posts-container {
